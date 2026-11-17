@@ -1,4 +1,4 @@
-﻿require("dotenv").config();
+require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
@@ -12,6 +12,25 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: "2mb" }));
+
+app.use("/api/logs", require("./routes/logs"));
+app.use("/api/alerts", require("./routes/alerts"));
+app.use("/api/analytics", require("./routes/analytics"));
+
+const { runDetection } = require("./services/detectionEngine");
+
+app.post("/api/detections/run", async (req, res) => {
+    try {
+        const result = await runDetection();
+        res.json(result);
+    } catch (error) {
+        console.error("Detection execution failed:", error.message);
+        res.status(500).json({
+            success: false,
+            message: "Detection execution failed"
+        });
+    }
+});
 
 // Root endpoint
 app.get("/", (req, res) => {
@@ -256,3 +275,5 @@ if (require.main === module) {
 }
 
 module.exports = app;
+
+
